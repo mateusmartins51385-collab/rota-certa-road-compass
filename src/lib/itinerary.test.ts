@@ -15,8 +15,8 @@ const lines = [
   "003 Av. Ver. Narciso Yague Guimarães, 201 -23.518452 -46.182112",
   "Sentido São Paulo – Metrô Armênia → Mogi das Cruzes –",
   "Estação Estudantes",
-  "001 Rua A -23.5 -46.6",
-  "002 Rua B -23.51 -46.61",
+  "001 Rua A -23.500000 -46.600000",
+  "002 Rua B -23.510000 -46.610000",
 ];
 
 describe("parseItinerary", () => {
