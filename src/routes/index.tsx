@@ -37,8 +37,8 @@ function distToLine(p: { lat: number; lon: number }, line: [number, number][]) {
   const k = Math.cos((p.lat * Math.PI) / 180) * 111320;
   let best = Infinity;
   for (let i = 0; i < line.length - 1; i++) {
-    const ax = line[i][1] * k, ay = line[i][0] * 110540;
-    const bx = line[i + 1][1] * k, by = line[i + 1][0] * 110540;
+    const ax = line[i]![1] * k, ay = line[i]![0] * 110540;
+    const bx = line[i + 1]![1] * k, by = line[i + 1]![0] * 110540;
     const px = p.lon * k, py = p.lat * 110540;
     const dx = bx - ax, dy = by - ay;
     const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
@@ -150,7 +150,7 @@ function Index() {
                   </span>
                   <strong className="mt-1 block">{d.label}</strong>
                   <span className="mt-1 block text-sm text-muted-foreground">
-                    De {shortName(d.stops[0].name)} até {shortName(d.stops.at(-1)!.name)}
+                    De {shortName(d.stops[0]!.name)} até {shortName(d.stops.at(-1)!.name)}
                   </span>
                 </button>
               ))}
@@ -179,7 +179,7 @@ function Navigator({
   onDir: (d: number) => void;
   onBack: () => void;
 }) {
-  const direction = itinerary.directions[dir];
+  const direction = itinerary.directions[dir] ?? itinerary.directions[0]!;
   const stops = direction.stops;
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [status, setStatus] = useState("Traçando percurso…");
@@ -226,12 +226,12 @@ function Navigator({
     if (!pos) return;
     let next = active;
     for (let i = active; i < Math.min(stops.length, active + 4); i++) {
-      if (distanceMeters(pos, stops[i]) < 45) next = i + 1;
+      if (distanceMeters(pos, stops[i]!) < 45) next = i + 1;
     }
     if (next !== active) {
       setActive(next);
       if (voiceRef.current) {
-        speak(next >= stops.length ? "Fim do itinerário." : `Próxima parada: ${shortName(stops[next].name)}`);
+        speak(next >= stops.length ? "Fim do itinerário." : `Próxima parada: ${shortName(stops[next]!.name)}`);
       }
     }
   }, [pos]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -266,7 +266,7 @@ function Navigator({
   }
 
   const finished = active >= stops.length;
-  const next = stops[Math.min(active, stops.length - 1)];
+  const next = stops[Math.min(active, stops.length - 1)]!;
   const other = itinerary.directions.length > 1 ? (dir + 1) % itinerary.directions.length : null;
 
   return (
