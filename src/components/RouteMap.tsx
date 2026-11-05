@@ -68,7 +68,7 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
         radius: 11,
         color: "white",
         weight: 4,
-        fillColor: "#1d6fe0",
+        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--secondary").trim() || "navy",
         fillOpacity: 1,
       }).addTo(m);
     } else me.current.setLatLng([position.lat, position.lon]);
