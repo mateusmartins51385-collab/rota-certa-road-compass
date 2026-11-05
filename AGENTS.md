@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Bus routes are built only from the PDF stop coordinates in their listed order; any road leg that detours is replaced by a straight segment (lib/routing.ts), so the official course is never altered.
