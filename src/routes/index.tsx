@@ -265,8 +265,8 @@ function Navigator({
     );
   }
 
-  const next = stops[active];
   const finished = active >= stops.length;
+  const next = stops[Math.min(active, stops.length - 1)];
   const other = itinerary.directions.length > 1 ? (dir + 1) % itinerary.directions.length : null;
 
   return (
