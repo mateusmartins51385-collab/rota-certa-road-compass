@@ -32,8 +32,8 @@ export async function buildRoute(stops: Stop[], onProgress?: (msg: string) => vo
       legs = null;
     }
     for (let i = 0; i < batch.length - 1; i++) {
-      const a = batch[i];
-      const b = batch[i + 1];
+      const a = batch[i]!;
+      const b = batch[i + 1]!;
       const direct = distanceMeters(a, b);
       const leg = legs?.[i];
       if (leg && leg.coords.length && !isDetour(leg.distance, direct)) {

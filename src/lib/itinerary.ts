@@ -29,7 +29,7 @@ export function parseItinerary(lines: string[]): Itinerary {
         directions.push(current);
         pendingHeading = null;
       }
-      last = { n: Number(row[1]), name: row[2].trim(), lat: Number(row[3]), lon: Number(row[4]) };
+      last = { n: Number(row[1]), name: row[2]!.trim(), lat: Number(row[3]), lon: Number(row[4]) };
       current.stops.push(last);
       continue;
     }
@@ -52,7 +52,7 @@ function cleanHeading(h: string | null) {
 }
 
 export function shortName(name: string) {
-  return name.split(" - ")[0].replace(/\s+Mogi das Cruzes - São Paulo.*$/, "").trim();
+  return name.split(" - ")[0]!.replace(/\s+Mogi das Cruzes - São Paulo.*$/, "").trim();
 }
 
 export function distanceMeters(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
