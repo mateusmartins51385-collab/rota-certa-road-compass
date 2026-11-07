@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Stop } from "@/lib/itinerary";
+import { Button } from '@/components/ui/button';
+import { LocateFixed, Maximize, Plus, Minus } from 'lucide-react';
 
 type Props = {
   stops: Stop[];
@@ -15,7 +17,11 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layers = useRef<L.LayerGroup | null>(null);
-  const me = useRef<L.CircleMarker | null>(null);
+  const me = useRef<L.Marker | null>(null);
+  const bounds = useRef<L.LatLngBounds | null>(null);
+  const [tracking, setTracking] = useState(true);
+  const trackingRef = useRef(tracking);
+  trackingRef.current = tracking;
 
   useEffect(() => {
     if (!el.current || map.current) return;
@@ -25,9 +31,11 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
       attribution: "&copy; OpenStreetMap",
     }).addTo(map.current);
     layers.current = L.layerGroup().addTo(map.current);
+    map.current.on('dragstart', () => setTracking(false));
     return () => {
       map.current?.remove();
       map.current = null;
+      me.current = null;
     };
   }, []);
 
@@ -37,18 +45,23 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
     if (!m || !g) return;
     g.clearLayers();
     const css = getComputedStyle(document.documentElement);
-    const route = css.getPropertyValue("--route").trim() || "teal";
-    const done = css.getPropertyValue("--muted-foreground").trim() || "gray";
-    const next = css.getPropertyValue("--primary").trim() || "orange";
-    const pl = L.polyline(line.length ? line : stops.map((s) => [s.lat, s.lon] as [number, number]), {
+    const route = css.getPropertyValue("--navigation-route").trim();
+    const outline = css.getPropertyValue("--navigation-route-outline").trim();
+    const done = css.getPropertyValue("--muted-foreground").trim();
+    const next = css.getPropertyValue("--navigation-accent").trim();
+    const surface = css.getPropertyValue('--navigation-surface').trim();
+    const points = line.length ? line : stops.map((s) => [s.lat, s.lon] as [number, number]);
+    if (!points.length) return;
+    L.polyline(points, { color: outline, weight: 11, opacity: 1 }).addTo(g);
+    const pl = L.polyline(points, {
       color: route,
       weight: 7,
-      opacity: 0.85,
+      opacity: 1,
     }).addTo(g);
     stops.forEach((s, i) => {
       L.circleMarker([s.lat, s.lon], {
-        radius: i === activeIndex ? 10 : 5,
-        color: "white",
+        radius: i === activeIndex ? 9 : 3,
+        color: surface,
         weight: 2,
         fillColor: i < activeIndex ? done : i === activeIndex ? next : route,
         fillOpacity: 1,
@@ -56,7 +69,8 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
         .bindPopup(`<strong>${s.n}.</strong> ${s.name.replace(/[<>&]/g, "")}`)
         .addTo(g);
     });
-    if (!follow) m.fitBounds(pl.getBounds(), { padding: [30, 30] });
+    bounds.current = pl.getBounds();
+    if (!follow) m.fitBounds(pl.getBounds(), { padding: [45, 45] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stops, line, activeIndex]);
 
@@ -64,16 +78,26 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
     const m = map.current;
     if (!m || !position) return;
     if (!me.current) {
-      me.current = L.circleMarker([position.lat, position.lon], {
-        radius: 11,
-        color: "white",
-        weight: 4,
-        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--secondary").trim() || "navy",
-        fillOpacity: 1,
+      me.current = L.marker([position.lat, position.lon], {
+        icon: L.divIcon({ className: 'navigation-marker', iconSize: [48, 48], iconAnchor: [24, 24],
+          html: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="M24 8 36 36 24 30 12 36Z"/></svg>' }),
+        zIndexOffset: 1000,
       }).addTo(m);
     } else me.current.setLatLng([position.lat, position.lon]);
-    if (follow) m.setView([position.lat, position.lon], Math.max(m.getZoom(), 17));
-  }, [position, follow]);
+    const arrow = me.current.getElement()?.querySelector('svg');
+    if (arrow) arrow.style.transform = `rotate(${position.heading ?? 0}deg)`;
+    if (follow && trackingRef.current) m.setView([position.lat, position.lon], Math.max(m.getZoom(), 16));
+  }, [position, follow, tracking]);
 
-  return <div ref={el} className="h-full w-full" />;
+  useEffect(() => { if (follow) setTracking(true); }, [follow]);
+
+  return <div className="navigation-map relative h-full w-full">
+    <div ref={el} className="h-full w-full" />
+    <div className="absolute bottom-8 right-3 z-[450] flex flex-col gap-2 sm:right-5">
+      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Aumentar mapa" title="Aumentar mapa" onClick={() => map.current?.zoomIn()}><Plus /></Button>
+      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Diminuir mapa" title="Diminuir mapa" onClick={() => map.current?.zoomOut()}><Minus /></Button>
+      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Ver percurso inteiro" title="Ver percurso inteiro" onClick={() => { setTracking(false); if (bounds.current) map.current?.fitBounds(bounds.current, { padding: [45, 45] }); }}><Maximize /></Button>
+      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-accent text-navigation-accent-foreground" aria-label="Centralizar localização" title="Centralizar localização" disabled={!position} onClick={() => setTracking(true)}><LocateFixed /></Button>
+    </div>
+  </div>;
 }
