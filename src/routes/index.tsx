@@ -12,16 +12,18 @@ import {
   type Itinerary,
 } from "@/lib/itinerary";
 import { buildRoute, type RouteResult } from "@/lib/routing";
+import { LineSearch } from '@/components/LineSearch';
+import { directionName, officialRoute } from '@/lib/transit';
 
 const RouteMap = lazy(() => import("@/components/RouteMap"));
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Rota Motorista — GPS de itinerário para ônibus" },
-      { name: "description", content: "Importe o itinerário em PDF com ida e volta e siga o percurso exato da linha no GPS." },
-      { property: "og:title", content: "Rota Motorista — GPS de itinerário para ônibus" },
-      { property: "og:description", content: "Importe o itinerário em PDF com ida e volta e siga o percurso exato da linha." },
+      { title: "Rota Motorista — Buscar linhas de São Paulo e metropolitanas" },
+      { name: "description", content: "Pesquise linhas da SPTrans e metropolitanas por número, carregue o itinerário oficial ou importe seu PDF de ida e volta." },
+      { property: "og:title", content: "Rota Motorista — Busca de linhas e GPS de ônibus" },
+      { property: "og:description", content: "Busque itinerários oficiais de São Paulo e linhas metropolitanas de Guarulhos pelo número da linha." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -105,15 +107,16 @@ function Index() {
           <span className="font-display text-xl tracking-tight">Rota Motorista</span>
         </header>
 
-        <h1 className="font-display text-4xl leading-tight">
-          O percurso da linha,<br />
-          <span className="text-primary">exatamente como é.</span>
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          Envie o PDF do itinerário. O app separa ida e volta e liga as paradas na ordem oficial, sem atalhos.
-        </p>
+        <h1 className="font-display text-4xl leading-tight">Encontre sua linha</h1>
+        <LineSearch disabled={loading} onSelect={(it) => {
+          saveItinerary(it);
+          setItinerary(it);
+          setDir(0);
+          setMsg(null);
+        }} />
 
-        <label className="mt-8 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-border bg-card p-5 transition hover:border-primary">
+        <div className="mt-8 border-t border-border pt-5 text-sm text-muted-foreground">Ou use seu itinerário em PDF</div>
+        <label className="mt-3 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-border bg-card p-5 transition hover:border-primary">
           <FileText className="h-8 w-8 shrink-0 text-primary" />
           <span className="flex-1">
             <strong className="block">{loading ? "Lendo…" : "Escolher itinerário em PDF"}</strong>
@@ -136,23 +139,29 @@ function Index() {
         {itinerary && (
           <section className="mt-8">
             <h2 className="font-display text-2xl">{itinerary.title}</h2>
+            {itinerary.source && <p className="mt-2 text-xs text-muted-foreground">
+              Fonte: <a href={itinerary.source.source} target="_blank" rel="noreferrer" className="underline">{itinerary.source.provider === 'sptrans' ? 'SPTrans' : 'ARTESP / EMTU'}</a>
+              {' · '}Catálogo importado em {itinerary.source.importedAt.split('-').reverse().join('/')}
+              {' · '}Validade dos dados: {itinerary.source.validUntil.replace(/^(\d{4})(\d{2})(\d{2})$/, '$3/$2/$1')}
+            </p>}
             <div className="mt-4 space-y-3">
               {itinerary.directions.map((d, i) => (
-                <button
+                <Button variant="outline"
                   key={i}
                   onClick={() => setDir(i)}
-                  className={`w-full rounded-2xl border-2 p-4 text-left transition ${
+                  aria-pressed={dir === i}
+                  className={`block h-auto w-full whitespace-normal rounded-2xl border-2 p-4 text-left transition ${
                     dir === i ? "border-primary bg-accent" : "border-border bg-card"
                   }`}
                 >
                   <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                    {i === 0 ? "Ida" : i === 1 ? "Volta" : `Sentido ${i + 1}`} · {d.stops.length} paradas
+                    {directionName(d.kind, i)} · {d.stops.length} paradas
                   </span>
                   <strong className="mt-1 block">{d.label}</strong>
                   <span className="mt-1 block text-sm text-muted-foreground">
                     De {shortName(d.stops[0]!.name)} até {shortName(d.stops.at(-1)!.name)}
                   </span>
-                </button>
+                </Button>
               ))}
             </div>
             <Button size="lg" className="mt-6 h-14 w-full text-lg" onClick={() => setScreen("nav")}>
@@ -195,13 +204,28 @@ function Navigator({
     let cancel = false;
     setRoute(null);
     setActive(0);
-    const cacheKey = `rota-motorista:route:${itinerary.title}:${direction.label}:${stops.length}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      setRoute(JSON.parse(cached));
+    const shape = officialRoute(itinerary, dir);
+    if (shape) {
+      const distance = shape.reduce((total, point, index) => {
+        const prev = shape[index - 1];
+        return prev ? total + distanceMeters({ lat: prev[0], lon: prev[1] }, { lat: point[0], lon: point[1] }) : total;
+      }, 0);
+      setRoute({ line: shape, distance, straightLegs: 0 });
       setStatus("");
       return;
     }
+    const cacheKey = `rota-motorista:route:v2:${JSON.stringify(stops.map((s) => [s.lat, s.lon]))}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const saved = JSON.parse(cached) as RouteResult;
+        if (Array.isArray(saved.line) && saved.line.length >= 2 && Number.isFinite(saved.distance)) {
+          setRoute(saved);
+          setStatus("");
+          return;
+        }
+      }
+    } catch { /* Invalid or unavailable cache: rebuild from source stops. */ }
     buildRoute(stops, (m) => !cancel && setStatus(m)).then((r) => {
       if (cancel) return;
       setRoute(r);
@@ -277,13 +301,13 @@ function Navigator({
         </Button>
         <div className="min-w-0 flex-1">
           <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            {dir === 0 ? "Ida" : "Volta"}
+            {directionName(direction.kind, dir)}
           </span>
           <strong className="block truncate text-sm">{direction.label}</strong>
         </div>
         {other !== null && (
           <Button variant="outline" size="sm" onClick={() => onDir(other)}>
-            <ArrowRightLeft /> {other === 0 ? "Ida" : "Volta"}
+            <ArrowRightLeft /> {directionName(itinerary.directions[other]?.kind, other)}
           </Button>
         )}
       </div>
@@ -329,7 +353,7 @@ function Navigator({
         <div className="flex gap-2">
           {finished && other !== null ? (
             <Button size="lg" className="h-14 flex-1 text-base" onClick={() => onDir(other)}>
-              <ArrowRightLeft /> Começar {other === 0 ? "ida" : "volta"}
+              <ArrowRightLeft /> Começar {directionName(itinerary.directions[other]?.kind, other).toLowerCase()}
             </Button>
           ) : (
             <Button size="lg" variant={gps ? "secondary" : "default"} className="h-14 flex-1 text-base" onClick={toggleGps}>
