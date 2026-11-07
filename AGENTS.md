@@ -29,4 +29,5 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 
-- Bus routes are built only from the PDF stop coordinates in their listed order; any road leg that detours is replaced by a straight segment (lib/routing.ts), so the official course is never altered.
+- PDF routes use listed stop coordinates in order with detour rejection; official GTFS imports use the supplied shape verbatim, never a road-router reconstruction, to preserve source geometry.
+- Line search is a public read-only server function over the bundled official GTFS catalog; per-line JSON assets contain ordered stops and shapes. Refresh with scripts/import-transit.py using fresh official archives before data expires; never fabricate unsupported municipal coverage.

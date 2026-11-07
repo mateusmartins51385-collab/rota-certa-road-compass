@@ -1,6 +1,6 @@
 export type Stop = { n: number; name: string; lat: number; lon: number };
-export type Direction = { label: string; stops: Stop[] };
-export type Itinerary = { title: string; directions: Direction[] };
+export type Direction = { label: string; stops: Stop[]; kind?: 'ida' | 'volta'; line?: [number, number][] };
+export type Itinerary = { title: string; directions: Direction[]; source?: import('./transit').TransitLine };
 
 const ROW = /^(\d{1,4})\s+(.*?)\s+(-\d{1,2}\.\d{3,})\s+(-\d{1,3}\.\d{3,})$/;
 const COORDS_ONLY = /^(.*?)\s*(-\d{1,2}\.\d{3,})\s+(-\d{1,3}\.\d{3,})$/;
