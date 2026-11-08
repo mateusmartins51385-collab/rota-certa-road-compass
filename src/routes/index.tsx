@@ -293,87 +293,96 @@ function Navigator({
   const next = stops[Math.min(active, stops.length - 1)]!;
   const other = itinerary.directions.length > 1 ? (dir + 1) % itinerary.directions.length : null;
 
-  return (
-    <main className="fixed inset-0 flex flex-col bg-background">
-      <div className="z-10 flex items-center gap-2 border-b border-border bg-card px-3 py-2">
-        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Voltar">
-          <ArrowLeft />
-        </Button>
-        <div className="min-w-0 flex-1">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">
-            {directionName(direction.kind, dir)}
-          </span>
-          <strong className="block truncate text-sm">{direction.label}</strong>
-        </div>
-        {other !== null && (
-          <Button variant="outline" size="sm" onClick={() => onDir(other)}>
-            <ArrowRightLeft /> {directionName(itinerary.directions[other]?.kind, other)}
-          </Button>
-        )}
-      </div>
+  const distNext = !finished && pos ? distanceMeters(pos, next) : null;
+  const after = stops[active + 1];
 
-      <div className="relative flex-1">
+  return (
+    <main className="navigation-shell fixed inset-0 overflow-hidden bg-background">
+      <div className="absolute inset-0">
         <ClientOnly fallback={<div className="h-full bg-muted" />}>
           <Suspense fallback={<div className="h-full bg-muted" />}>
             <RouteMap stops={stops} line={route?.line ?? []} activeIndex={active} position={pos} follow={gps && !!pos} />
           </Suspense>
         </ClientOnly>
+      </div>
+
+      <div className="navigation-top pointer-events-none absolute inset-x-0 top-0 z-[600] space-y-2 px-3">
+        <div className="navigation-shadow pointer-events-auto overflow-hidden rounded-2xl bg-navigation-panel text-navigation-panel-foreground">
+          <div className="flex items-center gap-3 p-3">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-navigation-accent text-navigation-accent-foreground">
+              {finished ? <MapPin className="h-8 w-8" /> : <Navigation className="h-8 w-8" />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-3xl font-black leading-none">
+                {finished ? "Fim" : distNext !== null ? fmt(distNext) : `Parada ${active + 1}`}
+              </div>
+              <div className="mt-1 line-clamp-2 text-base font-semibold leading-tight">
+                {finished ? "Itinerário concluído" : shortName(next.name)}
+              </div>
+            </div>
+          </div>
+          {!finished && after && (
+            <div className="border-t border-navigation-panel-foreground/15 px-3 py-1.5 text-xs opacity-80 truncate">
+              Depois: {shortName(after.name)}
+            </div>
+          )}
+        </div>
         {offRoute && (
-          <div className="absolute inset-x-3 top-3 z-[500] rounded-xl bg-destructive p-3 text-center font-bold text-destructive-foreground shadow-lg">
+          <div className="navigation-shadow rounded-xl bg-destructive p-3 text-center font-bold text-destructive-foreground">
             Fora do percurso da linha
           </div>
         )}
         {status && (
-          <div className="absolute inset-x-3 top-3 z-[400] rounded-xl bg-card/95 p-3 text-center text-sm shadow">{status}</div>
+          <div className="navigation-shadow rounded-xl bg-navigation-surface p-2 text-center text-sm text-navigation-foreground">{status}</div>
         )}
       </div>
 
-      <div className="z-10 space-y-3 border-t border-border bg-card p-4 pb-6">
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-1 h-6 w-6 shrink-0 text-primary" />
-          <div className="min-w-0 flex-1">
-            <small className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              {finished ? "Itinerário concluído" : `Próxima parada · ${active + 1} de ${stops.length}`}
-            </small>
-            <strong className="block truncate text-lg">
-              {finished ? "Fim da linha" : shortName(next.name)}
-            </strong>
-            {!finished && pos && (
-              <span className="text-sm text-muted-foreground">a {fmt(distanceMeters(pos, next))}</span>
+      <div className="navigation-bottom absolute inset-x-0 bottom-0 z-[600] px-3">
+        <div className="navigation-shadow rounded-3xl bg-navigation-surface p-3 text-navigation-foreground">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-12 w-12 shrink-0 rounded-full" onClick={onBack} aria-label="Voltar">
+              <ArrowLeft />
+            </Button>
+            <div className="min-w-0 flex-1 text-center">
+              <div className="text-lg font-black leading-tight">
+                {finished ? "Concluído" : `${active + 1} de ${stops.length}`}
+                {route && <span className="font-semibold opacity-60"> · {fmt(route.distance)}</span>}
+              </div>
+              <div className="truncate text-xs opacity-70">
+                {directionName(direction.kind, dir)} · {direction.label}
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="h-12 w-12 shrink-0 rounded-full" onClick={() => setVoice((v) => !v)} aria-label="Voz">
+              {voice ? <Volume2 /> : <VolumeX />}
+            </Button>
+          </div>
+          <div className="mt-2 flex gap-2">
+            {finished && other !== null ? (
+              <Button size="lg" className="h-14 flex-1 rounded-2xl text-base font-bold" onClick={() => onDir(other)}>
+                <ArrowRightLeft /> Começar {directionName(itinerary.directions[other]?.kind, other).toLowerCase()}
+              </Button>
+            ) : (
+              <Button size="lg" variant={gps ? "secondary" : "default"} className="h-14 flex-1 rounded-2xl text-base font-bold" onClick={toggleGps}>
+                <LocateFixed /> {gps ? "Parar GPS" : "Iniciar GPS"}
+              </Button>
+            )}
+            {other !== null && !finished && (
+              <Button size="lg" variant="outline" className="h-14 rounded-2xl" onClick={() => onDir(other)} aria-label="Trocar sentido">
+                <ArrowRightLeft />
+              </Button>
             )}
           </div>
-        </div>
-        {route && (
-          <p className="text-xs text-muted-foreground">
-            Percurso: {fmt(route.distance)}
-            {route.straightLegs > 0 &&
-              ` · ${route.straightLegs} trecho(s) em linha reta, onde o mapa sugeriria desvio`}
-          </p>
-        )}
-        <div className="flex gap-2">
-          {finished && other !== null ? (
-            <Button size="lg" className="h-14 flex-1 text-base" onClick={() => onDir(other)}>
-              <ArrowRightLeft /> Começar {directionName(itinerary.directions[other]?.kind, other).toLowerCase()}
-            </Button>
-          ) : (
-            <Button size="lg" variant={gps ? "secondary" : "default"} className="h-14 flex-1 text-base" onClick={toggleGps}>
-              <LocateFixed /> {gps ? "Parar GPS" : "Iniciar GPS"}
-            </Button>
+          {!finished && (
+            <div className="mt-2 flex justify-between px-2 text-sm">
+              <button className="opacity-70 underline disabled:opacity-30" disabled={active === 0} onClick={() => setActive((a) => Math.max(0, a - 1))}>
+                Parada anterior
+              </button>
+              <button className="opacity-70 underline" onClick={() => setActive((a) => a + 1)}>
+                Pular parada
+              </button>
+            </div>
           )}
-          <Button size="lg" variant="outline" className="h-14 w-14" onClick={() => setVoice((v) => !v)} aria-label="Voz">
-            {voice ? <Volume2 /> : <VolumeX />}
-          </Button>
         </div>
-        {!finished && (
-          <div className="flex justify-between text-sm">
-            <button className="text-muted-foreground underline" disabled={active === 0} onClick={() => setActive((a) => Math.max(0, a - 1))}>
-              Parada anterior
-            </button>
-            <button className="text-muted-foreground underline" onClick={() => setActive((a) => a + 1)}>
-              Pular parada
-            </button>
-          </div>
-        )}
       </div>
     </main>
   );

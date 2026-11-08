@@ -86,14 +86,14 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
     } else me.current.setLatLng([position.lat, position.lon]);
     const arrow = me.current.getElement()?.querySelector('svg');
     if (arrow) arrow.style.transform = `rotate(${position.heading ?? 0}deg)`;
-    if (follow && trackingRef.current) m.setView([position.lat, position.lon], Math.max(m.getZoom(), 16));
+    if (follow && trackingRef.current) m.setView([position.lat, position.lon], Math.max(m.getZoom(), 17));
   }, [position, follow, tracking]);
 
   useEffect(() => { if (follow) setTracking(true); }, [follow]);
 
   return <div className="navigation-map relative h-full w-full">
     <div ref={el} className="h-full w-full" />
-    <div className="absolute bottom-8 right-3 z-[450] flex flex-col gap-2 sm:right-5">
+    <div className="absolute right-3 top-1/2 z-[450] flex -translate-y-1/2 flex-col gap-2 sm:right-5">
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Aumentar mapa" title="Aumentar mapa" onClick={() => map.current?.zoomIn()}><Plus /></Button>
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Diminuir mapa" title="Diminuir mapa" onClick={() => map.current?.zoomOut()}><Minus /></Button>
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Ver percurso inteiro" title="Ver percurso inteiro" onClick={() => { setTracking(false); if (bounds.current) map.current?.fitBounds(bounds.current, { padding: [45, 45] }); }}><Maximize /></Button>
