@@ -70,7 +70,7 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
         .addTo(g);
     });
     bounds.current = pl.getBounds();
-    if (!follow) m.fitBounds(pl.getBounds(), { padding: [45, 45] });
+    if (!follow) m.fitBounds(pl.getBounds(), { paddingTopLeft: [30, 150], paddingBottomRight: [70, 230] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stops, line, activeIndex]);
 
@@ -96,7 +96,7 @@ export default function RouteMap({ stops, line, activeIndex, position, follow }:
     <div className="absolute right-3 top-1/2 z-[450] flex -translate-y-1/2 flex-col gap-2 sm:right-5">
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Aumentar mapa" title="Aumentar mapa" onClick={() => map.current?.zoomIn()}><Plus /></Button>
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Diminuir mapa" title="Diminuir mapa" onClick={() => map.current?.zoomOut()}><Minus /></Button>
-      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Ver percurso inteiro" title="Ver percurso inteiro" onClick={() => { setTracking(false); if (bounds.current) map.current?.fitBounds(bounds.current, { padding: [45, 45] }); }}><Maximize /></Button>
+      <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-surface text-navigation-foreground" aria-label="Ver percurso inteiro" title="Ver percurso inteiro" onClick={() => { setTracking(false); if (bounds.current) map.current?.fitBounds(bounds.current, { paddingTopLeft: [30, 150], paddingBottomRight: [70, 230] }); }}><Maximize /></Button>
       <Button variant="outline" size="icon" className="navigation-shadow h-12 w-12 rounded-full border-0 bg-navigation-accent text-navigation-accent-foreground" aria-label="Centralizar localização" title="Centralizar localização" disabled={!position} onClick={() => setTracking(true)}><LocateFixed /></Button>
     </div>
   </div>;
