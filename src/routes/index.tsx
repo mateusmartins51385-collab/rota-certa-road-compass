@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRightLeft, FileText, LocateFixed, MapPin, Navigation, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, BusFront, FileText, LocateFixed, MapPin, Navigation, Route as RouteIcon, Satellite, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   distanceMeters,
