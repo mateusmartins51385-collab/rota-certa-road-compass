@@ -1,4 +1,5 @@
 # Automatic line lookup
+- [ ] Apply the requested futuristic interface to line search, PDF import, itinerary selection and GPS navigation; verify mobile portrait and desktop.
 - [x] Restyle GPS navigation with a Waze-inspired map, large next-stop display and floating map controls; verify mobile and desktop.
 - [x] Verify official SPTrans and ARTESP sources for São Paulo and metropolitan Guarulhos lines.
 - [x] Implement line-number search and import official directions into the existing navigator.
