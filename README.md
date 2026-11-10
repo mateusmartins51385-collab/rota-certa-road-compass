@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Rota Certa Road Compass
+
+Gostaria que verificasse a funcionalidade desse aplicativo e mudar o que está errado, pois preciso montar um aplicativo de GPS para motoristas de ônibus, que o motorista consiga colocar o itinerário com ida e volta em PDF e formar o itinerário sem alterar o percurso e que funcione
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://rota-certa-road-compass.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/fa55511e-0689-41fe-9a98-041125648058).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
