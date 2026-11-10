@@ -263,10 +263,6 @@
   stroke-width: 2;
 }
 
-.navigation-map .leaflet-tile-pane {
-  filter: grayscale(1) invert(0.92) sepia(0.16) hue-rotate(155deg) brightness(0.58) contrast(1.28) saturate(0.75);
-}
-
 .navigation-map .leaflet-control-attribution {
   max-width: calc(100% - 12px);
   padding: 2px 5px;
