@@ -8,14 +8,16 @@ type PromptEvent = Event & {
 
 /**
  * Lets the driver put the app on the phone home screen.
- * Android/Chrome: uses the native install prompt.
+ * Android/Chrome: uses the native install prompt when the browser offers one,
+ * otherwise shows the manual menu steps.
  * iPhone (Safari): shows the manual "Adicionar à Tela de Início" steps.
  */
 export function InstallApp() {
   const [promptEvent, setPromptEvent] = useState<PromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [ios, setIos] = useState(false);
-  const [showIosSteps, setShowIosSteps] = useState(false);
+  const [android, setAndroid] = useState(false);
+  const [showSteps, setShowSteps] = useState(false);
 
   useEffect(() => {
     const standalone =
@@ -30,6 +32,7 @@ export function InstallApp() {
       /iPad|iPhone|iPod/.test(ua) ||
       (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1);
     setIos(isIos);
+    setAndroid(/Android/.test(ua));
 
     const onPrompt = (event: Event) => {
       event.preventDefault();
@@ -64,7 +67,7 @@ export function InstallApp() {
     );
   }
 
-  if (!promptEvent && !ios) return null;
+  if (!promptEvent && !ios && !android) return null;
 
   return (
     <div className="mt-3">
@@ -89,7 +92,7 @@ export function InstallApp() {
       ) : (
         <button
           type="button"
-          onClick={() => setShowIosSteps((v) => !v)}
+          onClick={() => setShowSteps((v) => !v)}
           className="hud-panel flex w-full items-center gap-3 rounded-2xl border-dashed p-3 text-left transition hover:border-primary/70"
         >
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
@@ -97,20 +100,30 @@ export function InstallApp() {
           </span>
           <span className="min-w-0 flex-1">
             <strong className="block font-display text-xs font-semibold uppercase tracking-wide">
-              Colocar o app na tela inicial
+              Instalar no celular
             </strong>
             <span className="mt-0.5 block text-[11px] text-muted-foreground">
-              {showIosSteps ? "Ocultar passos" : "Ver os 3 passos no iPhone"}
+              {showSteps ? "Ocultar passos" : "Ver os 3 passos para colocar o ícone"}
             </span>
           </span>
         </button>
       )}
 
-      {showIosSteps && ios && (
+      {showSteps && !promptEvent && (
         <ol className="mt-2 space-y-1.5 rounded-xl border border-border bg-card/60 p-3 text-[11px] leading-relaxed text-muted-foreground">
-          <li>1. Toque no botão Compartilhar do Safari (quadrado com seta para cima).</li>
-          <li>2. Escolha "Adicionar à Tela de Início".</li>
-          <li>3. Toque em "Adicionar". O app aparece com o ícone verde.</li>
+          {ios ? (
+            <>
+              <li>1. Toque no botão Compartilhar do Safari (quadrado com seta para cima).</li>
+              <li>2. Escolha "Adicionar à Tela de Início".</li>
+              <li>3. Toque em "Adicionar". O app aparece com o ícone verde.</li>
+            </>
+          ) : (
+            <>
+              <li>1. Toque no menu de 3 pontinhos do navegador (Chrome).</li>
+              <li>2. Escolha "Adicionar à Tela de Início" ou "Instalar aplicativo".</li>
+              <li>3. Confirme em "Adicionar". O app aparece com o ícone verde.</li>
+            </>
+          )}
         </ol>
       )}
     </div>
