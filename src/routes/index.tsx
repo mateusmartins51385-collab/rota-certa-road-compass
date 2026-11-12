@@ -13,6 +13,7 @@ import {
 } from "@/lib/itinerary";
 import { buildRoute, type RouteResult } from "@/lib/routing";
 import { LineSearch } from '@/components/LineSearch';
+import { InstallApp } from '@/components/InstallApp';
 import { directionName, officialRoute } from '@/lib/transit';
 
 const RouteMap = lazy(() => import("@/components/RouteMap"));
@@ -214,6 +215,8 @@ function Index() {
             </Button>
           </section>
         )}
+
+        <InstallApp />
 
         <div className="mt-8 flex items-start gap-3 rounded-xl border border-border/60 bg-card/35 p-3 text-[11px] leading-relaxed text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />

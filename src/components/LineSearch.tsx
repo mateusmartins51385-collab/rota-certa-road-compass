@@ -56,7 +56,7 @@ export function LineSearch({ onSelect, disabled }: { onSelect: (it: Itinerary) =
       <div className="hud-panel hud-corners flex gap-2 rounded-2xl p-2">
         <Input id="line-number" className="h-12 min-w-0 flex-1 border-0 bg-transparent px-3 font-display text-lg font-semibold tracking-wider shadow-none placeholder:font-sans placeholder:text-sm placeholder:font-normal placeholder:tracking-normal focus-visible:ring-0" value={number} maxLength={16}
           placeholder="Ex.: 003, 011 ou 1016-10" autoComplete="off" disabled={busy || disabled}
-          onChange={(e) => { setNumber(e.target.value); setLines([]); setMessage(''); }} required pattern="[0-9a-zA-Z -]+" />
+          onChange={(e) => { setNumber(e.target.value); setLines([]); setMessage(''); }} required pattern="[-0-9A-Za-z ]+" />
         <Button type="submit" className="glow-primary h-12 rounded-xl px-5 font-display text-xs font-bold uppercase tracking-wider" disabled={busy || disabled || !number.trim()}>
           {busy ? <LoaderCircle className="animate-spin" /> : <Search />} Buscar
         </Button>

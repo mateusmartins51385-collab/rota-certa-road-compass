@@ -1,0 +1,36 @@
+{
+  "name": "Rota Motorista — GPS de ônibus",
+  "short_name": "Rota Motorista",
+  "description": "Busque linhas de São Paulo e metropolitanas pelo número e navegue o itinerário oficial, parada por parada, com ida e volta.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0d1522",
+  "theme_color": "#0d1522",
+  "categories": ["navigation", "travel"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
